@@ -1,0 +1,143 @@
+
+import static java.awt.SystemColor.text;
+import java.awt.event.*; 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.*; 
+
+class c1 extends JFrame implements ActionListener { 
+  
+    static JFrame f;  
+    static JButton b;  
+    static JLabel l; 
+    static JTextArea jt1,jt2; 
+
+    c1() 
+    { 
+    } 
+    public static void main(String[] args) 
+    {  
+        Socket socket1;
+   DataInputStream din;
+   DataOutputStream dout;
+   ObjectOutputStream outdata;
+   Scanner sc;
+   try{
+        System.out.println("Before connection");
+   	socket1= new Socket("10.15.5.70",4433);
+   	System.out.println("connected");
+        System.out.println(socket1.isBound());
+        System.out.println(socket1.isConnected());
+   	sc= new Scanner(System.in);
+   	dout= new DataOutputStream(socket1.getOutputStream());
+   	String line="";
+   		do{
+                    f = new JFrame("textfield");  
+        
+        l = new JLabel("nothing entered"); 
+        
+        b = new JButton("merge");  
+        
+        text te = new text();  
+        
+        b.addActionListener(te);  
+        
+        jt1 = new JTextArea(10, 10);
+        jt2 = new JTextArea(10, 30);
+        
+   
+        JPanel p = new JPanel(); 
+   
+        p.add(jt1);
+        p.add(jt2);
+       
+        p.add(b); 
+        p.add(l); 
+  
+        f.add(p); 
+         
+        f.setSize(100, 100); 
+  
+        f.show(); 
+//   			System.out.println("Enter some text");   	
+//		   	line= sc.nextLine();   	
+		   	dout.writeUTF(line);
+		   	dout.flush();
+   		}while(!(line.equals("end")));
+   	
+   	dout.close();
+   	socket1.close();
+        
+   	}catch(Exception e){
+   	  e.printStackTrace();
+   	}
+        
+    } 
+  
+   
+    public void actionPerformed(ActionEvent e)
+    { 
+        DataOutputStream dout;
+        Socket socket1;
+        Scanner sc;
+        String s = e.getActionCommand(); 
+        if (s.equals("merge")) { 
+            try{
+//               	socket1= new Socket("10.15.5.70",4433);
+//                System.out.println(socket1.isBound());
+//                System.out.println(socket1.isConnected());
+                sc= new Scanner(System.in);
+                dout= new DataOutputStream(socket1.getOutputStream());
+                String str = JOptionPane.showInputDialog(null,"Enter from jt2 for user2 and jt3 for user3");
+                 String line="";
+   		do{ 	
+		   	line= sc.nextLine();   	
+		   	dout.writeUTF(line);
+		   	dout.flush();
+   		}while(!(line.equals("end")));
+   	
+            dout.close();
+            socket1.close();
+            try {
+            ServerSocket server= new ServerSocket(4433);
+			while(true){
+                                Socket socket= server.accept();
+				new MyThread2(socket);
+			}
+			
+        } catch (IOException ex) {
+            Logger.getLogger(c1.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+            }catch(Exception ex){
+              ex.printStackTrace();
+            }
+        } 
+    } 
+} 
+class MyThread2 extends Thread{
+	Socket socket;
+	MyThread2(Socket s){
+		socket=s;
+		start();
+	}
+	public void run(){
+		try{
+			DataInputStream din= new DataInputStream(socket.getInputStream());
+              String data="";
+			  while(!(data.equals("stop"))){
+				  data= din.readUTF();
+              System.out.println(data);
+			  }
+		}catch(Exception e2){
+			e2.printStackTrace();
+		}
+	}
+}
